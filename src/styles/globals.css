@@ -1,3 +1,55 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --color-blue: #2AADE3;
+  --color-teal: #00C5E3;
+  --color-turquoise: #00D9CF;
+  --color-light-green: #58EAAE;
+  --color-lime-green: #ABF489;
+  --color-yellow: #F9F871;
+}
+
+.dark {
+  --color-blue: #3BBFF5;
+  --color-teal: #10D7F5;
+  --color-turquoise: #12EBE1;
+  --color-light-green: #69FCBF;
+  --color-lime-green: #BCFF9A;
+  --color-yellow: #FFFA82;
+}
+
+body {
+  @apply bg-gray-50 dark:bg-dark-bg-primary text-gray-900 dark:text-dark-text-primary transition-colors duration-200;
+}
+
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* Custom scrollbar - Light Mode */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100 dark:bg-dark-bg-tertiary;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 dark:bg-gray-600 rounded;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-400 dark:bg-gray-500;
+}
+
+/* Dark mode transitions */
+.transition-colors {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}

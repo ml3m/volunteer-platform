@@ -1,15 +1,34 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 const FilterBar: React.FC = () => {
+  const [eventFilter, setEventFilter] = useState('all');
+  const [dateRange, setDateRange] = useState('Jul 10, 2022 - Jul 10, 2023');
+  const [selectedGroup, setSelectedGroup] = useState('');
+  const [selectedProgram, setSelectedProgram] = useState('');
+
   return (
     <div className="flex flex-wrap gap-4 mb-6">
       <div className="flex-1 min-w-[200px]">
         <div className="text-sm text-gray-600 mb-1">View events hosted by:</div>
         <div className="flex">
-          <button className="py-2 px-4 bg-gray-100 text-gray-800 rounded-l-md border border-gray-300">
+          <button 
+            className={`py-2 px-4 rounded-l-md border border-gray-300 dark:border-dark-border transition-colors ${
+              eventFilter === 'all' 
+                ? 'bg-[#2AADE3] dark:bg-dark-brand-blue text-white border-[#2AADE3] dark:border-dark-brand-blue' 
+                : 'bg-white dark:bg-dark-bg-tertiary text-gray-800 dark:text-dark-text-primary hover:bg-gray-50 dark:hover:bg-dark-bg-tertiary/80'
+            }`}
+            onClick={() => setEventFilter('all')}
+          >
             All Events
           </button>
-          <button className="py-2 px-4 text-gray-800 rounded-r-md border border-gray-300 border-l-0">
+          <button 
+            className={`py-2 px-4 rounded-r-md border border-gray-300 dark:border-dark-border border-l-0 transition-colors ${
+              eventFilter === 'hosted' 
+                ? 'bg-[#2AADE3] dark:bg-dark-brand-blue text-white border-[#2AADE3] dark:border-dark-brand-blue' 
+                : 'bg-white dark:bg-dark-bg-tertiary text-gray-800 dark:text-dark-text-primary hover:bg-gray-50 dark:hover:bg-dark-bg-tertiary/80'
+            }`}
+            onClick={() => setEventFilter('hosted')}
+          >
             Events You Hosted
           </button>
         </div>
@@ -18,8 +37,16 @@ const FilterBar: React.FC = () => {
       <div className="flex-1 min-w-[200px]">
         <div className="text-sm text-gray-600 mb-1">Date range</div>
         <div className="relative">
-          <select className="w-full py-2 px-4 border border-gray-300 rounded-md appearance-none bg-white">
-            <option>Jul 10, 2022 - Jul 10, 2023</option>
+          <select 
+            className="w-full py-2 px-4 border border-gray-300 dark:border-dark-border rounded-md appearance-none bg-white dark:bg-dark-bg-tertiary text-gray-800 dark:text-dark-text-primary cursor-pointer hover:border-[#00C5E3] dark:hover:border-dark-brand-teal transition-colors"
+            value={dateRange}
+            onChange={(e) => setDateRange(e.target.value)}
+          >
+            <option value="Jul 10, 2022 - Jul 10, 2023">Jul 10, 2022 - Jul 10, 2023</option>
+            <option value="Jan 1, 2023 - Dec 31, 2023">Jan 1, 2023 - Dec 31, 2023</option>
+            <option value="Last 30 days">Last 30 days</option>
+            <option value="Last 90 days">Last 90 days</option>
+            <option value="This year">This year</option>
           </select>
           <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
@@ -32,8 +59,17 @@ const FilterBar: React.FC = () => {
       <div className="flex-1 min-w-[200px]">
         <div className="text-sm text-gray-600 mb-1">Select groups</div>
         <div className="relative">
-          <select className="w-full py-2 px-4 border border-gray-300 rounded-md appearance-none bg-white">
-            <option>Select</option>
+          <select 
+            className="w-full py-2 px-4 border border-gray-300 dark:border-dark-border rounded-md appearance-none bg-white dark:bg-dark-bg-tertiary text-gray-800 dark:text-dark-text-primary cursor-pointer hover:border-[#00C5E3] dark:hover:border-dark-brand-teal transition-colors"
+            value={selectedGroup}
+            onChange={(e) => setSelectedGroup(e.target.value)}
+          >
+            <option value="">Select</option>
+            <option value="Marketing">Marketing</option>
+            <option value="Engineering">Engineering</option>
+            <option value="Sales">Sales</option>
+            <option value="Customer Support">Customer Support</option>
+            <option value="Human Resources">Human Resources</option>
           </select>
           <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
@@ -46,8 +82,17 @@ const FilterBar: React.FC = () => {
       <div className="flex-1 min-w-[200px]">
         <div className="text-sm text-gray-600 mb-1">Select Program</div>
         <div className="relative">
-          <select className="w-full py-2 px-4 border border-gray-300 rounded-md appearance-none bg-white">
-            <option>Select</option>
+          <select 
+            className="w-full py-2 px-4 border border-gray-300 dark:border-dark-border rounded-md appearance-none bg-white dark:bg-dark-bg-tertiary text-gray-800 dark:text-dark-text-primary cursor-pointer hover:border-[#00C5E3] dark:hover:border-dark-brand-teal transition-colors"
+            value={selectedProgram}
+            onChange={(e) => setSelectedProgram(e.target.value)}
+          >
+            <option value="">Select</option>
+            <option value="Community Outreach">Community Outreach</option>
+            <option value="Environmental">Environmental</option>
+            <option value="Education">Education</option>
+            <option value="Health & Wellness">Health & Wellness</option>
+            <option value="Animal Welfare">Animal Welfare</option>
           </select>
           <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
