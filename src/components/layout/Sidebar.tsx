@@ -14,6 +14,23 @@ type ContentType = 'dashboard' | 'volunteers' | 'applications' | 'documents' | '
                   'reminders' | 'recognition' | 'requests' | 'database' | 'reports' | 
                   'settings' | 'documentation' | 'support';
 
+// Define the role-based access map - each tab can have multiple roles that can access it
+const roleBasedAccessMap: Record<ContentType, string[]> = {
+  dashboard: ['ADMIN', 'VOLUNTEER', 'COORDINATOR'], // Everyone can access
+  volunteers: ['ADMIN', 'COORDINATOR'],
+  applications: ['ADMIN'], // Only admins can access Applications
+  documents: ['ADMIN', 'VOLUNTEER', 'COORDINATOR'],
+  scanner: ['ADMIN', 'VOLUNTEER', 'COORDINATOR'],
+  reminders: ['ADMIN', 'VOLUNTEER', 'COORDINATOR'],
+  recognition: ['ADMIN', 'VOLUNTEER', 'COORDINATOR'],
+  requests: ['ADMIN', 'VOLUNTEER', 'COORDINATOR'],
+  database: ['ADMIN'], // Only admins can access database
+  reports: ['ADMIN', 'COORDINATOR'],
+  settings: ['ADMIN'], // Only admins can access settings
+  documentation: ['ADMIN', 'VOLUNTEER', 'COORDINATOR'],
+  support: ['ADMIN', 'VOLUNTEER', 'COORDINATOR']
+};
+
 interface SidebarProps {
   onNavigate?: (contentType: ContentType) => void;
   activeContent?: ContentType;
@@ -27,6 +44,17 @@ const Sidebar: React.FC<SidebarProps> = ({ onNavigate, activeContent = 'dashboar
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const { user } = useAuth();
+
+  // Function to check if a user has access to a specific tab
+  const hasAccess = (contentType: ContentType): boolean => {
+    // If no user is logged in or no role is defined, default to no access
+    if (!user || !user.role) {
+      return false;
+    }
+    
+    // Check if the user's role is in the list of allowed roles for this content type
+    return roleBasedAccessMap[contentType].includes(user.role);
+  };
 
   // Function to handle navigation
   const handleNavigation = (contentType: ContentType) => {
@@ -68,28 +96,6 @@ const Sidebar: React.FC<SidebarProps> = ({ onNavigate, activeContent = 'dashboar
         </div>
       </div>
       
-      <div className="p-4 border-b border-gray-200 dark:border-dark-border">
-        <button 
-          className="w-full flex items-center justify-between"
-          onClick={() => {}}
-        >
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 rounded-full bg-[#2AADE3] flex items-center justify-center text-white">
-              DX
-            </div>
-            <div>
-              <div className="font-medium">GnomeDX</div>
-              <div className="text-xs text-gray-500">Organization</div>
-            </div>
-          </div>
-          <div>
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-            </svg>
-          </div>
-        </button>
-      </div>
-      
       <div className="p-4">
         <button className="w-full flex items-center justify-center space-x-2 py-2 px-4 border border-[#00D9CF] rounded-md text-[#00D9CF] hover:bg-[#00D9CF]/10 transition-colors dark:border-dark-border">
           <span>+</span>
@@ -108,6 +114,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onNavigate, activeContent = 'dashboar
             onClick={() => setDashboardOpen(!dashboardOpen)}
             active={activeContent === 'dashboard'}
             onNavigate={handleNavigation}
+            hasAccess={hasAccess('dashboard')}
           />
           
           {dashboardOpen && (
@@ -126,6 +133,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onNavigate, activeContent = 'dashboar
             onClick={() => setVolunteersOpen(!volunteersOpen)}
             active={activeContent === 'volunteers'}
             onNavigate={handleNavigation}
+            hasAccess={hasAccess('volunteers')}
           />
           
           {volunteersOpen && (
@@ -136,13 +144,17 @@ const Sidebar: React.FC<SidebarProps> = ({ onNavigate, activeContent = 'dashboar
             </>
           )}
           
-          <NavItem 
-            icon={<UserPlusIcon className="w-5 h-5" />} 
-            label="Applications" 
-            contentType="applications"
-            active={activeContent === 'applications'}
-            onNavigate={handleNavigation}
-          />
+          {/* Only show Applications tab to admin users */}
+          {hasAccess('applications') && (
+            <NavItem 
+              icon={<UserPlusIcon className="w-5 h-5" />} 
+              label="Applications" 
+              contentType="applications"
+              active={activeContent === 'applications'}
+              onNavigate={handleNavigation}
+              hasAccess={hasAccess('applications')}
+            />
+          )}
           
           <NavItem 
             icon={<DocumentTextIcon className="w-5 h-5" />} 
@@ -153,6 +165,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onNavigate, activeContent = 'dashboar
             onClick={() => setDocumentsOpen(!documentsOpen)}
             active={activeContent === 'documents'}
             onNavigate={handleNavigation}
+            hasAccess={hasAccess('documents')}
           />
           
           {documentsOpen && (
@@ -169,6 +182,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onNavigate, activeContent = 'dashboar
             contentType="scanner"
             active={activeContent === 'scanner'}
             onNavigate={handleNavigation}
+            hasAccess={hasAccess('scanner')}
           />
           
           <NavItem 
@@ -180,6 +194,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onNavigate, activeContent = 'dashboar
             onClick={() => setEventsOpen(!eventsOpen)}
             active={activeContent === 'reminders'}
             onNavigate={handleNavigation}
+            hasAccess={hasAccess('reminders')}
           />
           
           {eventsOpen && (
@@ -195,6 +210,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onNavigate, activeContent = 'dashboar
             contentType="recognition"
             active={activeContent === 'recognition'}
             onNavigate={handleNavigation}
+            hasAccess={hasAccess('recognition')}
           />
           
           <NavItem 
@@ -203,15 +219,20 @@ const Sidebar: React.FC<SidebarProps> = ({ onNavigate, activeContent = 'dashboar
             contentType="requests"
             active={activeContent === 'requests'}
             onNavigate={handleNavigation}
+            hasAccess={hasAccess('requests')}
           />
           
-          <NavItem 
-            icon={<CircleStackIcon className="w-5 h-5" />} 
-            label="Database" 
-            contentType="database"
-            active={activeContent === 'database'}
-            onNavigate={handleNavigation}
-          />
+          {/* Only show Database tab to admin users */}
+          {hasAccess('database') && (
+            <NavItem 
+              icon={<CircleStackIcon className="w-5 h-5" />} 
+              label="Database" 
+              contentType="database"
+              active={activeContent === 'database'}
+              onNavigate={handleNavigation}
+              hasAccess={hasAccess('database')}
+            />
+          )}
           
           <NavItem 
             icon={<ChartBarIcon className="w-5 h-5" />} 
@@ -219,20 +240,25 @@ const Sidebar: React.FC<SidebarProps> = ({ onNavigate, activeContent = 'dashboar
             contentType="reports"
             active={activeContent === 'reports'}
             onNavigate={handleNavigation}
+            hasAccess={hasAccess('reports')}
           />
           
-          <NavItem 
-            icon={<Cog6ToothIcon className="w-5 h-5" />} 
-            label="Settings" 
-            contentType="settings"
-            hasDropdown
-            isOpen={settingsOpen}
-            onClick={() => setSettingsOpen(!settingsOpen)}
-            active={activeContent === 'settings'}
-            onNavigate={handleNavigation}
-          />
+          {/* Only show Settings tab to admin users */}
+          {hasAccess('settings') && (
+            <NavItem 
+              icon={<Cog6ToothIcon className="w-5 h-5" />} 
+              label="Settings" 
+              contentType="settings"
+              hasDropdown
+              isOpen={settingsOpen}
+              onClick={() => setSettingsOpen(!settingsOpen)}
+              active={activeContent === 'settings'}
+              onNavigate={handleNavigation}
+              hasAccess={hasAccess('settings')}
+            />
+          )}
           
-          {settingsOpen && (
+          {settingsOpen && hasAccess('settings') && (
             <>
               <li className="pl-10 py-2 text-gray-600 cursor-pointer hover:bg-gray-100 rounded-md">User Management</li>
               <li className="pl-10 py-2 text-gray-600 cursor-pointer hover:bg-gray-100 rounded-md">Roles & Permissions</li>
@@ -246,6 +272,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onNavigate, activeContent = 'dashboar
             contentType="documentation"
             active={activeContent === 'documentation'}
             onNavigate={handleNavigation}
+            hasAccess={hasAccess('documentation')}
           />
           
           <NavItem 
@@ -254,17 +281,16 @@ const Sidebar: React.FC<SidebarProps> = ({ onNavigate, activeContent = 'dashboar
             contentType="support"
             active={activeContent === 'support'}
             onNavigate={handleNavigation}
+            hasAccess={hasAccess('support')}
           />
         </ul>
       </nav>
       
-      <div className="p-4 border-t border-gray-200">
-        <button className="w-full flex items-center space-x-2 py-2 px-4 text-gray-700 hover:bg-gray-100 rounded-md transition-colors dark:border-dark-border">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clipRule="evenodd" />
-          </svg>
-          <span>Log Out</span>
-        </button>
+      <div className="p-4 border-t border-gray-200 dark:border-dark-border">
+        <div className="text-sm text-gray-500 dark:text-dark-text-secondary">
+          <p>© 2025 oraluirobert</p>
+          <p>Version 1.0.0</p>
+        </div>
       </div>
     </div>
   );
@@ -279,6 +305,7 @@ interface NavItemProps {
   isOpen?: boolean;
   onClick?: () => void;
   onNavigate?: (contentType: ContentType) => void;
+  hasAccess?: boolean;
 }
 
 const NavItem: React.FC<NavItemProps> = ({ 
@@ -289,47 +316,41 @@ const NavItem: React.FC<NavItemProps> = ({
   active = false,
   isOpen = false,
   onClick,
-  onNavigate
+  onNavigate,
+  hasAccess = true
 }) => {
+  
+  // Don't render if the user doesn't have access
+  if (!hasAccess) {
+    return null;
+  }
+  
   const handleClick = () => {
-    console.log(`NavItem clicked: ${label} (${contentType})`);
-    
     if (hasDropdown && onClick) {
-      console.log(`Toggling dropdown for: ${label}`);
       onClick();
-    }
-    
-    // Always navigate when clicked, regardless of dropdown status
-    if (onNavigate) {
-      console.log(`Navigating to: ${contentType}`);
+    } else if (onNavigate) {
       onNavigate(contentType);
     }
   };
-
+  
   return (
-    <li>
-      <button 
-        onClick={handleClick}
-        className={`w-full flex items-center justify-between py-2 px-3 rounded-md transition-colors ${
-          active 
-            ? 'text-[#00D9CF] dark:text-dark-brand-turquoise bg-[#00D9CF]/10 dark:bg-dark-brand-turquoise/10' 
-            : 'text-gray-700 dark:text-dark-text-primary hover:bg-gray-100 dark:hover:bg-dark-bg-tertiary/10'
-        }`}
-      >
-        <div className="flex items-center space-x-3">
-          <div className="text-gray-500 dark:text-dark-text-secondary">
-            {icon}
-          </div>
-          <span>{label}</span>
+    <li 
+      className={`py-2 px-2 mb-1 flex items-center justify-between rounded-md cursor-pointer ${
+        active ? 'text-[#00D9CF] dark:text-dark-brand-turquoise bg-[#00D9CF]/10 dark:bg-dark-brand-turquoise/10' : 'text-gray-700 dark:text-dark-text-primary hover:bg-gray-100 dark:hover:bg-dark-bg-tertiary/20'
+      }`}
+      onClick={handleClick}
+    >
+      <div className="flex items-center space-x-3">
+        <div className="w-5 h-5">{icon}</div>
+        <span>{label}</span>
+      </div>
+      {hasDropdown && (
+        <div className={`transform transition-transform ${isOpen ? 'rotate-180' : ''}`}>
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+          </svg>
         </div>
-        {hasDropdown && (
-          <div className={`transform transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-            </svg>
-          </div>
-        )}
-      </button>
+      )}
     </li>
   );
 };

@@ -27,6 +27,7 @@ const ApplicationsContent: React.FC = () => {
     verificationCode: string;
     email: string;
   } | null>(null);
+  const [accessDenied, setAccessDenied] = useState(false); // State to track access denied
 
   // Mock data for fallback
   const mockApplications: Application[] = [
@@ -72,7 +73,18 @@ const ApplicationsContent: React.FC = () => {
       return;
     }
     
-    if (!authLoading) {
+    // Check if user is an admin
+    if (!authLoading && user && user.role !== 'ADMIN') {
+      console.log('User is not an admin, access denied');
+      setAccessDenied(true);
+      // Redirect after a short delay to allow seeing the access denied message
+      setTimeout(() => {
+        router.push('/');
+      }, 3000);
+      return;
+    }
+    
+    if (!authLoading && user && user.role === 'ADMIN') {
       fetchApplications();
     }
   }, [authLoading, user, router]);
@@ -342,134 +354,143 @@ const ApplicationsContent: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-dark-text-primary">Applications</h1>
-        <div className="flex space-x-2">
-          <button 
-            onClick={fetchApplications}
-            className="px-4 py-2 bg-gray-100 dark:bg-dark-bg-tertiary text-gray-700 dark:text-dark-text-primary rounded-md hover:bg-gray-200 dark:hover:bg-dark-bg-tertiary/80 transition-colors mr-2"
-          >
-            Refresh
-          </button>
-          <button className="px-4 py-2 bg-[#00D9CF] text-white rounded-md hover:bg-[#00C5E3] transition-colors">
-            Export
-          </button>
-          <button className="px-4 py-2 bg-gray-100 dark:bg-dark-bg-tertiary text-gray-700 dark:text-dark-text-primary rounded-md hover:bg-gray-200 dark:hover:bg-dark-bg-tertiary/80 transition-colors">
-            Filter
-          </button>
-        </div>
-      </div>
-
-      {!isApiAvailable && (
-        <div className="bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-900/30 text-yellow-700 dark:text-yellow-400 px-4 py-3 rounded-md text-sm">
-          <p className="font-medium">Demo Mode</p>
-          <p>Using sample data. API connectivity is unavailable.</p>
-        </div>
-      )}
-      
-      {error && error !== 'Using demo data - API is not available' && (
-        <div className="bg-red-100 dark:bg-red-900/10 p-4 rounded-md text-red-700 dark:text-red-400">
-          {error}
-        </div>
-      )}
-      
-      {approvalSuccess && (
-        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-900/30 text-green-700 dark:text-green-400 px-4 py-3 rounded-md">
-          <h3 className="text-sm font-medium">Application approved successfully!</h3>
-          <div className="mt-2 text-sm">
-            <p>Verification code: <span className="font-mono font-bold">{approvalSuccess.verificationCode}</span></p>
-            <p className="mt-1">Email: {approvalSuccess.email}</p>
-            <p className="mt-2 text-xs">
-              {isApiAvailable ? 
-                'This code has been sent to the applicant\'s email.' : 
-                'In a production environment, this code would be sent to the applicant\'s email.'}
-            </p>
-          </div>
-        </div>
-      )}
-
-      {isLoading ? (
-        <div className="flex justify-center py-8">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#00D9CF] dark:border-dark-brand-turquoise"></div>
-        </div>
-      ) : applications.length === 0 ? (
-        <div className="bg-white dark:bg-dark-bg-secondary shadow p-8 text-center rounded-lg">
-          <p className="text-gray-500 dark:text-dark-text-secondary text-lg">No applications found.</p>
+      {accessDenied ? (
+        <div className="bg-red-100 dark:bg-red-900/10 border border-red-200 dark:border-red-900/30 text-red-700 dark:text-red-400 px-4 py-3 rounded-md text-sm">
+          <p className="font-medium">Access Denied</p>
+          <p>You do not have permission to view this page. Redirecting to homepage...</p>
         </div>
       ) : (
-        <div className="bg-white dark:bg-dark-bg-secondary shadow overflow-hidden sm:rounded-lg">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-dark-border">
-            <thead className="bg-gray-50 dark:bg-dark-bg-tertiary">
-              <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-dark-text-secondary uppercase tracking-wider">
-                  Name
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-dark-text-secondary uppercase tracking-wider">
-                  Email
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-dark-text-secondary uppercase tracking-wider">
-                  Status
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-dark-text-secondary uppercase tracking-wider">
-                  Date
-                </th>
-                <th scope="col" className="relative px-6 py-3">
-                  <span className="sr-only">Actions</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white dark:bg-dark-bg-secondary divide-y divide-gray-200 dark:divide-dark-border">
-              {applications.map((application) => (
-                <tr key={application.id} className="hover:bg-gray-50 dark:hover:bg-dark-bg-tertiary/10">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900 dark:text-dark-text-primary">{application.name}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500 dark:text-dark-text-secondary">{application.email}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      application.status === 'PENDING' 
-                        ? 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400' 
-                        : application.status === 'APPROVED' 
-                          ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400'
-                          : 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400'
-                    }`}>
-                      {application.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-dark-text-secondary">
-                    {new Date(application.createdAt).toLocaleDateString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button 
-                      onClick={() => handleViewApplication(application)}
-                      className="text-[#00D9CF] dark:text-dark-brand-turquoise hover:text-[#00C5E3] dark:hover:text-dark-brand-teal mr-4"
-                    >
-                      View
-                    </button>
-                    {application.status === 'PENDING' && (
-                      <>
-                        <button
-                          onClick={() => handleApprove(application.id)}
-                          className="text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 mr-4"
+        <>
+          <div className="flex justify-between items-center">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-dark-text-primary">Applications</h1>
+            <div className="flex space-x-2">
+              <button 
+                onClick={fetchApplications}
+                className="px-4 py-2 bg-gray-100 dark:bg-dark-bg-tertiary text-gray-700 dark:text-dark-text-primary rounded-md hover:bg-gray-200 dark:hover:bg-dark-bg-tertiary/80 transition-colors mr-2"
+              >
+                Refresh
+              </button>
+              <button className="px-4 py-2 bg-[#00D9CF] text-white rounded-md hover:bg-[#00C5E3] transition-colors">
+                Export
+              </button>
+              <button className="px-4 py-2 bg-gray-100 dark:bg-dark-bg-tertiary text-gray-700 dark:text-dark-text-primary rounded-md hover:bg-gray-200 dark:hover:bg-dark-bg-tertiary/80 transition-colors">
+                Filter
+              </button>
+            </div>
+          </div>
+
+          {!isApiAvailable && (
+            <div className="bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-900/30 text-yellow-700 dark:text-yellow-400 px-4 py-3 rounded-md text-sm">
+              <p className="font-medium">Demo Mode</p>
+              <p>Using sample data. API connectivity is unavailable.</p>
+            </div>
+          )}
+          
+          {error && error !== 'Using demo data - API is not available' && (
+            <div className="bg-red-100 dark:bg-red-900/10 p-4 rounded-md text-red-700 dark:text-red-400">
+              {error}
+            </div>
+          )}
+          
+          {approvalSuccess && (
+            <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-900/30 text-green-700 dark:text-green-400 px-4 py-3 rounded-md">
+              <h3 className="text-sm font-medium">Application approved successfully!</h3>
+              <div className="mt-2 text-sm">
+                <p>Verification code: <span className="font-mono font-bold">{approvalSuccess.verificationCode}</span></p>
+                <p className="mt-1">Email: {approvalSuccess.email}</p>
+                <p className="mt-2 text-xs">
+                  {isApiAvailable ? 
+                    'This code has been sent to the applicant\'s email.' : 
+                    'In a production environment, this code would be sent to the applicant\'s email.'}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {isLoading ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#00D9CF] dark:border-dark-brand-turquoise"></div>
+            </div>
+          ) : applications.length === 0 ? (
+            <div className="bg-white dark:bg-dark-bg-secondary shadow p-8 text-center rounded-lg">
+              <p className="text-gray-500 dark:text-dark-text-secondary text-lg">No applications found.</p>
+            </div>
+          ) : (
+            <div className="bg-white dark:bg-dark-bg-secondary shadow overflow-hidden sm:rounded-lg">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-dark-border">
+                <thead className="bg-gray-50 dark:bg-dark-bg-tertiary">
+                  <tr>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-dark-text-secondary uppercase tracking-wider">
+                      Name
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-dark-text-secondary uppercase tracking-wider">
+                      Email
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-dark-text-secondary uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-dark-text-secondary uppercase tracking-wider">
+                      Date
+                    </th>
+                    <th scope="col" className="relative px-6 py-3">
+                      <span className="sr-only">Actions</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white dark:bg-dark-bg-secondary divide-y divide-gray-200 dark:divide-dark-border">
+                  {applications.map((application) => (
+                    <tr key={application.id} className="hover:bg-gray-50 dark:hover:bg-dark-bg-tertiary/10">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900 dark:text-dark-text-primary">{application.name}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-500 dark:text-dark-text-secondary">{application.email}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          application.status === 'PENDING' 
+                            ? 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400' 
+                            : application.status === 'APPROVED' 
+                              ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400'
+                              : 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400'
+                        }`}>
+                          {application.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-dark-text-secondary">
+                        {new Date(application.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button 
+                          onClick={() => handleViewApplication(application)}
+                          className="text-[#00D9CF] dark:text-dark-brand-turquoise hover:text-[#00C5E3] dark:hover:text-dark-brand-teal mr-4"
                         >
-                          Approve
+                          View
                         </button>
-                        <button
-                          onClick={() => handleReject(application.id)}
-                          className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"
-                        >
-                          Reject
-                        </button>
-                      </>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                        {application.status === 'PENDING' && (
+                          <>
+                            <button
+                              onClick={() => handleApprove(application.id)}
+                              className="text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 mr-4"
+                            >
+                              Approve
+                            </button>
+                            <button
+                              onClick={() => handleReject(application.id)}
+                              className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"
+                            >
+                              Reject
+                            </button>
+                          </>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
       )}
 
       {/* Application Details Modal */}
