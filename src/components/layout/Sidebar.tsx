@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useAuth } from '~/context/AuthContext';
 import Link from 'next/link';
 import Image from 'next/image';
 import { 
@@ -16,12 +17,7 @@ const Sidebar: React.FC = () => {
   const [eventsOpen, setEventsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
-  // Mock user data - in a real app, this would come from authentication
-  const user = {
-    name: 'Beth Julca',
-    email: 'beth@pointapp.org',
-    role: 'Admin' // or 'Volunteer'
-  };
+  const { user } = useAuth();
 
   return (
     <div className="w-64 bg-white dark:bg-dark-bg-secondary border-r border-gray-200 dark:border-dark-border flex flex-col transition-colors duration-200">
@@ -38,19 +34,17 @@ const Sidebar: React.FC = () => {
         <div className="flex items-center mt-4 space-x-3">
           <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden">
             <img 
-              src="https://randomuser.me/api/portraits/women/81.jpg" 
-              alt={user.name} 
+              src={`https://ui-avatars.com/api/?name=${user?.name.replace(' ', '+') || 'User'}&background=2AADE3&color=fff`}
+              alt={user?.name || 'User'} 
               className="w-full h-full object-cover"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.src = `https://ui-avatars.com/api/?name=${user.name.replace(' ', '+')}&background=2AADE3&color=fff`;
-              }}
             />
           </div>
           <div>
-            <div className="font-medium">{user.name}</div>
-            <div className="text-sm text-gray-500">{user.email}</div>
-            <div className="text-xs px-2 py-0.5 bg-[#00D9CF] text-white rounded-full inline-block mt-1">{user.role}</div>
+            <div className="font-medium text-gray-800 dark:text-dark-text-primary">{user?.name || 'User'}</div>
+            <div className="text-sm text-gray-500 dark:text-dark-text-secondary">{user?.email || 'user@example.com'}</div>
+            <div className="text-xs px-2 py-0.5 bg-[#00D9CF] dark:bg-dark-brand-turquoise text-white rounded-full inline-block mt-1">
+              {user?.role || 'VOLUNTEER'}
+            </div>
           </div>
         </div>
       </div>
