@@ -12,7 +12,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string, role?: string) => Promise<void>;
+  register: (name: string, email: string, password: string, role?: string, verificationCode?: string) => Promise<void>;
   logout: () => void;
   error: string | null;
 }
@@ -94,7 +94,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (name: string, email: string, password: string, role?: string) => {
+  const register = async (name: string, email: string, password: string, role?: string, verificationCode?: string) => {
     setLoading(true);
     setError(null);
     
@@ -104,7 +104,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name, email, password, role }),
+        body: JSON.stringify({ name, email, password, role, verificationCode }),
       });
 
       const data = await response.json();

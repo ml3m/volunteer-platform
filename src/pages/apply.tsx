@@ -1,68 +1,76 @@
-import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
+import React, { useState } from 'react';
 import { useRouter } from 'next/router';
-import { useAuth } from '../context/AuthContext';
+import Link from 'next/link';
 import { useTheme } from '../context/ThemeContext';
 import Image from 'next/image';
 
-const Register: React.FC = () => {
+const ApplyAsVolunteer: React.FC = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [verificationCode, setVerificationCode] = useState('');
-  const [passwordError, setPasswordError] = useState('');
-  const [verificationError, setVerificationError] = useState('');
-  const { register, user, error, loading } = useAuth();
+  const [phone, setPhone] = useState('');
+  const [motivation, setMotivation] = useState('');
+  const [experience, setExperience] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
   const { darkMode, toggleDarkMode } = useTheme();
   const router = useRouter();
 
-  useEffect(() => {
-    // If user is already logged in, redirect to dashboard
-    if (user) {
-      router.push('/');
-    }
-  }, [user, router]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
+    setError(null);
     
-    // Validate passwords match
-    if (password !== confirmPassword) {
-      setPasswordError('Passwords do not match');
-      return;
-    }
-    
-    setPasswordError('');
-    setVerificationError('');
-    
-    // Verify the code first
     try {
-      const verifyResponse = await fetch('/api/auth/verify-code', {
+      const response = await fetch('/api/applications/apply', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ code: verificationCode, email }),
+        body: JSON.stringify({ name, email, phone, motivation, experience }),
       });
-      
-      const verifyData = await verifyResponse.json();
-      
-      if (!verifyResponse.ok) {
-        setVerificationError(verifyData.message || 'Invalid verification code');
-        return;
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Application submission failed');
       }
-      
-      // If verification is successful, proceed with registration
-      await register(name, email, password, 'VOLUNTEER', verificationCode);
+
+      setSuccess(true);
     } catch (error) {
       if (error instanceof Error) {
-        setVerificationError(error.message);
+        setError(error.message);
       } else {
-        setVerificationError('An unexpected error occurred');
+        setError('An unexpected error occurred');
       }
+    } finally {
+      setLoading(false);
     }
   };
+
+  if (success) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center bg-gray-50 dark:bg-dark-bg-primary py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-200 ${darkMode ? 'dark' : ''}`}>
+        <div className="max-w-md w-full space-y-8 text-center">
+          <div className="h-16 relative mx-auto w-64">
+            <Image 
+              src="/images/oraluirobert_logo.png" 
+              alt="Logo" 
+              layout="fill" 
+              objectFit="contain" 
+            />
+          </div>
+          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-900/30 text-green-700 dark:text-green-400 px-4 py-6 rounded-md">
+            <h2 className="text-2xl font-bold mb-2">Application Submitted!</h2>
+            <p className="mb-4">Thank you for applying to be a volunteer. We will review your application and contact you via email.</p>
+            <Link href="/" className="font-medium text-[#00D9CF] dark:text-dark-brand-turquoise hover:text-[#00C5E3] dark:hover:text-dark-brand-teal">
+              Return to home page
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`min-h-screen flex items-center justify-center bg-gray-50 dark:bg-dark-bg-primary py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-200 ${darkMode ? 'dark' : ''}`}>
@@ -95,18 +103,12 @@ const Register: React.FC = () => {
             />
           </div>
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-dark-text-primary">
-            Create a volunteer account
+            Apply as Volunteer
           </h2>
           <p className="mt-2 text-sm text-gray-600 dark:text-dark-text-secondary">
-            Or{' '}
+            Already have an account?{' '}
             <Link href="/login" className="font-medium text-[#00D9CF] dark:text-dark-brand-turquoise hover:text-[#00C5E3] dark:hover:text-dark-brand-teal">
-              sign in to your existing account
-            </Link>
-          </p>
-          <p className="mt-2 text-sm text-gray-600 dark:text-dark-text-secondary">
-            Don't have a verification code?{' '}
-            <Link href="/apply" className="font-medium text-[#00D9CF] dark:text-dark-brand-turquoise hover:text-[#00C5E3] dark:hover:text-dark-brand-teal">
-              Apply as a volunteer
+              Sign in
             </Link>
           </p>
         </div>
@@ -115,18 +117,6 @@ const Register: React.FC = () => {
           {error && (
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/30 text-red-700 dark:text-red-400 px-4 py-3 rounded-md text-sm">
               {error}
-            </div>
-          )}
-          
-          {passwordError && (
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/30 text-red-700 dark:text-red-400 px-4 py-3 rounded-md text-sm">
-              {passwordError}
-            </div>
-          )}
-          
-          {verificationError && (
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/30 text-red-700 dark:text-red-400 px-4 py-3 rounded-md text-sm">
-              {verificationError}
             </div>
           )}
           
@@ -160,44 +150,41 @@ const Register: React.FC = () => {
               />
             </div>
             <div>
-              <label htmlFor="verification-code" className="sr-only">Verification code</label>
+              <label htmlFor="phone" className="sr-only">Phone number</label>
               <input
-                id="verification-code"
-                name="verification-code"
-                type="text"
-                required
-                value={verificationCode}
-                onChange={(e) => setVerificationCode(e.target.value)}
+                id="phone"
+                name="phone"
+                type="tel"
+                autoComplete="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 dark:border-dark-border placeholder-gray-500 dark:placeholder-gray-500 text-gray-900 dark:text-dark-text-primary dark:bg-dark-bg-tertiary focus:outline-none focus:ring-[#00D9CF] dark:focus:ring-dark-brand-turquoise focus:border-[#00D9CF] dark:focus:border-dark-brand-turquoise focus:z-10 sm:text-sm"
-                placeholder="Verification code from email"
+                placeholder="Phone number (optional)"
               />
             </div>
             <div>
-              <label htmlFor="password" className="sr-only">Password</label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="new-password"
+              <label htmlFor="motivation" className="sr-only">Motivation</label>
+              <textarea
+                id="motivation"
+                name="motivation"
                 required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={motivation}
+                onChange={(e) => setMotivation(e.target.value)}
+                rows={4}
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 dark:border-dark-border placeholder-gray-500 dark:placeholder-gray-500 text-gray-900 dark:text-dark-text-primary dark:bg-dark-bg-tertiary focus:outline-none focus:ring-[#00D9CF] dark:focus:ring-dark-brand-turquoise focus:border-[#00D9CF] dark:focus:border-dark-brand-turquoise focus:z-10 sm:text-sm"
-                placeholder="Password"
+                placeholder="Why do you want to volunteer with us?"
               />
             </div>
             <div>
-              <label htmlFor="confirm-password" className="sr-only">Confirm password</label>
-              <input
-                id="confirm-password"
-                name="confirm-password"
-                type="password"
-                autoComplete="new-password"
-                required
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+              <label htmlFor="experience" className="sr-only">Experience</label>
+              <textarea
+                id="experience"
+                name="experience"
+                value={experience}
+                onChange={(e) => setExperience(e.target.value)}
+                rows={4}
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 dark:border-dark-border placeholder-gray-500 dark:placeholder-gray-500 text-gray-900 dark:text-dark-text-primary dark:bg-dark-bg-tertiary rounded-b-md focus:outline-none focus:ring-[#00D9CF] dark:focus:ring-dark-brand-turquoise focus:border-[#00D9CF] dark:focus:border-dark-brand-turquoise focus:z-10 sm:text-sm"
-                placeholder="Confirm password"
+                placeholder="Describe any relevant experience (optional)"
               />
             </div>
           </div>
@@ -213,7 +200,7 @@ const Register: React.FC = () => {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-              ) : 'Create account'}
+              ) : 'Submit Application'}
             </button>
           </div>
         </form>
@@ -222,4 +209,4 @@ const Register: React.FC = () => {
   );
 };
 
-export default Register;
+export default ApplyAsVolunteer; 
