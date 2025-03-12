@@ -9,8 +9,17 @@ import {
   ChartBarIcon, UserPlusIcon, QrCodeIcon
 } from '@heroicons/react/24/outline';
 
+// Define the content types that can be displayed in the main area
+type ContentType = 'dashboard' | 'volunteers' | 'applications' | 'documents' | 'scanner' | 
+                  'reminders' | 'recognition' | 'requests' | 'database' | 'reports' | 
+                  'settings' | 'documentation' | 'support';
 
-const Sidebar: React.FC = () => {
+interface SidebarProps {
+  onNavigate?: (contentType: ContentType) => void;
+  activeContent?: ContentType;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ onNavigate, activeContent = 'dashboard' }) => {
   const [dashboardOpen, setDashboardOpen] = useState(true);
   const [volunteersOpen, setVolunteersOpen] = useState(false);
   const [documentsOpen, setDocumentsOpen] = useState(false);
@@ -18,6 +27,16 @@ const Sidebar: React.FC = () => {
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const { user } = useAuth();
+
+  // Function to handle navigation
+  const handleNavigation = (contentType: ContentType) => {
+    console.log(`Sidebar handleNavigation called with: ${contentType}`);
+    console.log(`onNavigate prop exists: ${!!onNavigate}`);
+    
+    if (onNavigate) {
+      onNavigate(contentType);
+    }
+  };
 
   return (
     <div className="w-64 bg-white dark:bg-dark-bg-secondary border-r border-gray-200 dark:border-dark-border flex flex-col transition-colors duration-200">
@@ -83,11 +102,12 @@ const Sidebar: React.FC = () => {
           <NavItem 
             icon={<HomeIcon className="w-5 h-5" />} 
             label="Dashboard" 
-            href="/" 
+            contentType="dashboard"
             hasDropdown 
             isOpen={dashboardOpen}
             onClick={() => setDashboardOpen(!dashboardOpen)}
-            active
+            active={activeContent === 'dashboard'}
+            onNavigate={handleNavigation}
           />
           
           {dashboardOpen && (
@@ -100,10 +120,12 @@ const Sidebar: React.FC = () => {
           <NavItem 
             icon={<UsersIcon className="w-5 h-5" />} 
             label="Volunteers" 
-            href="/volunteers" 
+            contentType="volunteers"
             hasDropdown
             isOpen={volunteersOpen}
             onClick={() => setVolunteersOpen(!volunteersOpen)}
+            active={activeContent === 'volunteers'}
+            onNavigate={handleNavigation}
           />
           
           {volunteersOpen && (
@@ -117,16 +139,20 @@ const Sidebar: React.FC = () => {
           <NavItem 
             icon={<UserPlusIcon className="w-5 h-5" />} 
             label="Applications" 
-            href="/applications" 
+            contentType="applications"
+            active={activeContent === 'applications'}
+            onNavigate={handleNavigation}
           />
           
           <NavItem 
             icon={<DocumentTextIcon className="w-5 h-5" />} 
             label="Documents" 
-            href="/documents"
+            contentType="documents"
             hasDropdown
             isOpen={documentsOpen}
             onClick={() => setDocumentsOpen(!documentsOpen)}
+            active={activeContent === 'documents'}
+            onNavigate={handleNavigation}
           />
           
           {documentsOpen && (
@@ -140,16 +166,20 @@ const Sidebar: React.FC = () => {
           <NavItem 
             icon={<QrCodeIcon className="w-5 h-5" />} 
             label="Document Scanner" 
-            href="/scanner" 
+            contentType="scanner"
+            active={activeContent === 'scanner'}
+            onNavigate={handleNavigation}
           />
           
           <NavItem 
             icon={<BellIcon className="w-5 h-5" />} 
             label="Reminders" 
-            href="/reminders"
+            contentType="reminders"
             hasDropdown
             isOpen={eventsOpen}
             onClick={() => setEventsOpen(!eventsOpen)}
+            active={activeContent === 'reminders'}
+            onNavigate={handleNavigation}
           />
           
           {eventsOpen && (
@@ -162,34 +192,44 @@ const Sidebar: React.FC = () => {
           <NavItem 
             icon={<GiftIcon className="w-5 h-5" />} 
             label="Recognition" 
-            href="/recognition" 
+            contentType="recognition"
+            active={activeContent === 'recognition'}
+            onNavigate={handleNavigation}
           />
           
           <NavItem 
             icon={<DocumentDuplicateIcon className="w-5 h-5" />} 
             label="Requests" 
-            href="/requests" 
+            contentType="requests"
+            active={activeContent === 'requests'}
+            onNavigate={handleNavigation}
           />
           
           <NavItem 
             icon={<CircleStackIcon className="w-5 h-5" />} 
             label="Database" 
-            href="/database" 
+            contentType="database"
+            active={activeContent === 'database'}
+            onNavigate={handleNavigation}
           />
           
           <NavItem 
             icon={<ChartBarIcon className="w-5 h-5" />} 
             label="Reports" 
-            href="/reports" 
+            contentType="reports"
+            active={activeContent === 'reports'}
+            onNavigate={handleNavigation}
           />
           
           <NavItem 
             icon={<Cog6ToothIcon className="w-5 h-5" />} 
             label="Settings" 
-            href="/settings"
+            contentType="settings"
             hasDropdown
             isOpen={settingsOpen}
             onClick={() => setSettingsOpen(!settingsOpen)}
+            active={activeContent === 'settings'}
+            onNavigate={handleNavigation}
           />
           
           {settingsOpen && (
@@ -203,13 +243,17 @@ const Sidebar: React.FC = () => {
           <NavItem 
             icon={<BookOpenIcon className="w-5 h-5" />} 
             label="Documentation" 
-            href="/documentation" 
+            contentType="documentation"
+            active={activeContent === 'documentation'}
+            onNavigate={handleNavigation}
           />
           
           <NavItem 
             icon={<QuestionMarkCircleIcon className="w-5 h-5" />} 
             label="Support" 
-            href="/support" 
+            contentType="support"
+            active={activeContent === 'support'}
+            onNavigate={handleNavigation}
           />
         </ul>
       </nav>
@@ -229,53 +273,63 @@ const Sidebar: React.FC = () => {
 interface NavItemProps {
   icon: React.ReactNode;
   label: string;
-  href: string;
+  contentType: ContentType;
   hasDropdown?: boolean;
   active?: boolean;
   isOpen?: boolean;
   onClick?: () => void;
+  onNavigate?: (contentType: ContentType) => void;
 }
 
 const NavItem: React.FC<NavItemProps> = ({ 
   icon, 
   label, 
-  href, 
+  contentType,
   hasDropdown = false, 
   active = false,
   isOpen = false,
-  onClick
+  onClick,
+  onNavigate
 }) => {
+  const handleClick = () => {
+    console.log(`NavItem clicked: ${label} (${contentType})`);
+    
+    if (hasDropdown && onClick) {
+      console.log(`Toggling dropdown for: ${label}`);
+      onClick();
+    }
+    
+    // Always navigate when clicked, regardless of dropdown status
+    if (onNavigate) {
+      console.log(`Navigating to: ${contentType}`);
+      onNavigate(contentType);
+    }
+  };
+
   return (
     <li>
-      <Link 
-        href={href} 
-        className={`flex items-center justify-between py-2 px-4 rounded-md ${
+      <button 
+        onClick={handleClick}
+        className={`w-full flex items-center justify-between py-2 px-3 rounded-md transition-colors ${
           active 
-            ? 'text-[#00D9CF] dark:text-dark-brand-turquoise' 
-            : 'text-gray-600 dark:text-dark-text-secondary hover:bg-gray-100 dark:hover:bg-dark-bg-tertiary'
-        } transition-colors`}
-        onClick={(e) => {
-          if (hasDropdown && onClick) {
-            e.preventDefault();
-            onClick();
-          }
-        }}
+            ? 'text-[#00D9CF] dark:text-dark-brand-turquoise bg-[#00D9CF]/10 dark:bg-dark-brand-turquoise/10' 
+            : 'text-gray-700 dark:text-dark-text-primary hover:bg-gray-100 dark:hover:bg-dark-bg-tertiary/10'
+        }`}
       >
         <div className="flex items-center space-x-3">
-          {icon}
+          <div className="text-gray-500 dark:text-dark-text-secondary">
+            {icon}
+          </div>
           <span>{label}</span>
         </div>
         {hasDropdown && (
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} 
-            viewBox="0 0 20 20" 
-            fill="currentColor"
-          >
-            <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-          </svg>
+          <div className={`transform transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+            </svg>
+          </div>
         )}
-      </Link>
+      </button>
     </li>
   );
 };
